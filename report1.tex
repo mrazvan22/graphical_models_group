@@ -105,6 +105,28 @@ Hello
 
 \section*{Problem 3.9}
 
+\subsection*{Belief network}
+
+\begin{figure}[H]
+  \centering
+    \begin{tikzpicture}[scale=0.8,help lines/.style={color=lightgray,line width=0.2pt},post/.style={->,shorten >=1pt,>=stealth',thick}]
+    
+    \node[upper left,inner sep=2] (A) at (0.0,2.0){A};
+    \node[upper left,inner sep=2] (G) at (2.0,0.0) {G};
+    \node[upper left,inner sep=2] (R) at (-2.0,0.0) {R};
+    \node[upper left,inner sep=2] (D) at (0.0,-2.0) {D};
+
+    \draw[->, thick] (A) -- (R);
+    \draw[->, thick] (A) -- (D);
+    \draw[->, thick] (G) -- (D);
+    \draw[->, thick] (G) -- (R);
+    \draw[->, thick] (D) -- (R);
+    
+    \end{tikzpicture}
+    \caption{Belief network}
+    \label{fig:all_trade_cca_black}     
+\end{figure}
+
 
 \section*{Problem 3.11}
 
