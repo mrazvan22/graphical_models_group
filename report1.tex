@@ -33,6 +33,7 @@
 \usepackage{color}
 \newcommand{\hilight}[1]{}%\colorbox{yellow}{#1}}
 
+\newcommand\ci{\perp\!\!\!\perp}
 
 % margin size
 \usepackage[margin=1in]{geometry}
@@ -78,6 +79,22 @@ Hello
 
 
 \section*{Problem 3.3}
+
+\begin{itemize}
+ \item $tuberculosis \ci smoking\;|\; shortness\;of\;breath$ is \textbf{false}, because path $t \to e \to d \to b \to s$ is not blocked
+ \item $lung\;cancer \ci  bronchitis\;|\;smoking$ is \textbf{true}, because:
+  \begin{itemize}
+    \item path $l \to s \to b$ is blocked ($s$ is instantiated)
+    \item path $l \to e \to d \to b$ is blocked (has collider ${e,d,b}$)
+  \end{itemize}
+ \item $visit \; to \; Asia \ci smoking\;|\;lung\;cancer$ is \textbf{true}, because:
+   \begin{itemize}
+    \item path $a \to t \to e \to l \to s$ is blocked ($l$ is instantiated)
+    \item path $a \to t \to e \to d \to b \to s$ is blocked ($d$ is uninstantiated)
+  \end{itemize}
+ \item $visit \; to \; Asia \ci smoking\;|\;lung \; cancer; \; shortness \; of \; breath$ is \textbf{false} because path $a \to t \to e \to d \to b \to s$ is not blocked ($d$ is instantiated).
+\end{itemize}
+
 
 
 \section*{Problem 3.4}
