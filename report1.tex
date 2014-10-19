@@ -130,6 +130,73 @@ This gives a list of ancestors for $x_{i}$ in the DAG.
 
 \section*{Problem 2.6}
 
+The histogram is generated using the Floyd-Warshall algorithm. This finds the minimum distance between all pairs of nodes on a directed graph. In order to apply this to the Wikipedia data, the adjacency matrix is first made symmetrical (i.e. undirected), to reflect that $i$ knowing $j$ implies $j$ knows $i$, as stated in the question.
+
+\begin{lstlisting}
+using MAT
+using PyPlot
+
+vars = matread("/Users/davido/code/BRML/data/WikiAdjSmall.mat")
+
+# get adjacency matrix
+V = vars["A"]
+
+# make a new copy of V, which will be processed to be symmetric and [0,1]
+V_new = copy(V)
+
+# make adjacency matrix symmetric, because we assume it's undirected
+for i in 1:size(V_new)[1]
+        for j in 1:size(V_new)[2]
+                if (V[i,j]==1) || (V[j,i]==1)
+                        V_new[i,j] = 1
+                        V_new[j,i] = 1
+                elseif ((V[i,j]!=0) && (V[j,i]!=0))
+                        println(i,",",j)
+                        error("CANNOT TRANSFORM TO ADJACENCY MATRIX!")
+                end
+        end
+end
+
+# initialise distances matrix at Inf for every pair
+dists = ones(size(V_new)) * Inf
+
+# Floyd-Warshall loop: figure out the minimum distance from each node to every other node
+for i in 1:size(dists)[1]
+        dists[i,i] = 0
+end
+
+for i in 1:size(dists)[1]
+        for j in 1:size(dists)[1]
+                if V_new[i,j] > 0
+                        dists[i,j] = V_new[i,j]
+                end
+        end
+end
+
+for i in 1:size(dists)[1]
+        for j in 1:size(dists)[1]
+                for k in 1:size(dists)[1]
+                        if dists[j,k] > dists[j,i] + dists[i,k]
+                                dists[j,k] = dists[j,i] + dists[i,k]
+                        end
+                end
+        end
+end
+
+# extract relevant output -- can't just hist() whole matrix, because diagonals are irrelevant
+output = Float64[]
+
+for i in 1:size(V_new)[1]
+        for j in 1:size(V_new)[2]
+                if i < j
+                        push!(output, dists[i,j])
+                end
+        end
+end
+
+h = PyPlot.plt.hist(output, 0:1:20)
+
+\end{lstlisting}
 
 \section*{Problem 2.7}
 
