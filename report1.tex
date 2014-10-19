@@ -338,7 +338,31 @@ it by the number of patients that received the drug.
 
 
 \section*{Problem 3.15}
+\begin{enumerate}
+	\item 
+	\begin{figure}[H]
+  \centering
+    \begin{tikzpicture}[scale=0.8,help lines/.style={color=lightgray,line 
+width=0.2pt},post/.style={->,shorten >=1pt,>=stealth',thick}]
+    
+    \node[inner sep=2] (eh) at (0.0,-2.0){eh};
+    \node[inner sep=2] (oil) at (2.0,0.0) {oil};
+    \node[inner sep=2] (bp) at (4.0,0.0) {bp};
+    \node[inner sep=2] (inf) at (-2.0,0.0) {inf};
+		\node[inner sep=2] (rt) at (0.0,2.0) {rt};
 
+    \draw[->, thick] (oil) -- (bp);
+    \draw[->, thick] (eh) -- (oil);
+    \draw[->, thick] (eh) -- (inf);
+    \draw[->, thick] (oil) -- (inf);
+    \draw[->, thick] (eh) -- (rt);
+		\draw[->, thick] (inf) -- (rt);
+    
+    \end{tikzpicture}
+    \caption{Belief network}
+    \label{fig:all_trade_cca_black}     
+\end{figure}
+\end{enumerate}
 
 \section*{Problem 3.17}
 
