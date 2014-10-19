@@ -104,7 +104,7 @@ inner sep=0]
     \texttt{razvan.marinescu.14@ucl.ac.uk}
     \and
     David Owen\\
-    \texttt{email.address@ucl.ac.uk}
+    \texttt{david.owen.14@ucl.ac.uk}
     \and
     Kin Quan\\
     \texttt{kin.quan.10@ucl.ac.uk}
@@ -130,18 +130,77 @@ This gives a list of ancestors for $x_{i}$ in the DAG.
 
 \section*{Problem 2.6}
 
-The following histogram was obtained for the Wikipedia editor network:
+The histogram is generated using the Floyd-Warshall algorithm. This finds the minimum distance between all pairs of nodes on a directed graph. In order to apply this to the Wikipedia data, the adjacency matrix is first made symmetrical (i.e. undirected), to reflect that $i$ knowing $j$ implies $j$ knows $i$, as stated in the question.
+
 
 \includegraphics[scale=0.6]{plots/206_histogram}
 
-The source code in Julia that was used to create this image is as follows:
 
 \begin{lstlisting}
-"If you don't understand this you won't pass the graphical models course"
-		David Barber on Julia
-\end{lstlisting}
-\hilight{David, insert source code here ..}
+using MAT
+using PyPlot
 
+vars = matread("/Users/davido/code/BRML/data/WikiAdjSmall.mat")
+
+# get adjacency matrix
+V = vars["A"]
+
+# make a new copy of V, which will be processed to be symmetric and [0,1]
+V_new = copy(V)
+
+# make adjacency matrix symmetric, because we assume it's undirected
+for i in 1:size(V_new)[1]
+        for j in 1:size(V_new)[2]
+                if (V[i,j]==1) || (V[j,i]==1)
+                        V_new[i,j] = 1
+                        V_new[j,i] = 1
+                elseif ((V[i,j]!=0) && (V[j,i]!=0))
+                        println(i,",",j)
+                        error("CANNOT TRANSFORM TO ADJACENCY MATRIX!")
+                end
+        end
+end
+
+# initialise distances matrix at Inf for every pair
+dists = ones(size(V_new)) * Inf
+
+# Floyd-Warshall loop: figure out the minimum distance from each node to every other node
+for i in 1:size(dists)[1]
+        dists[i,i] = 0
+end
+
+for i in 1:size(dists)[1]
+        for j in 1:size(dists)[1]
+                if V_new[i,j] > 0
+                        dists[i,j] = V_new[i,j]
+                end
+        end
+end
+
+for i in 1:size(dists)[1]
+        for j in 1:size(dists)[1]
+                for k in 1:size(dists)[1]
+                        if dists[j,k] > dists[j,i] + dists[i,k]
+                                dists[j,k] = dists[j,i] + dists[i,k]
+                        end
+                end
+        end
+end
+
+# extract relevant output -- can't just hist() whole matrix, because diagonals are irrelevant
+output = Float64[]
+
+for i in 1:size(V_new)[1]
+        for j in 1:size(V_new)[2]
+                if i < j
+                        push!(output, dists[i,j])
+                end
+        end
+end
+
+h = PyPlot.plt.hist(output, 0:1:20)
+
+\end{lstlisting}
 
 \section*{Problem 2.7}
 
@@ -344,90 +403,7 @@ it by the number of patients that received the drug.
 
 
 \section*{Problem 3.13}
-The two graphs given are Markov equivalent because they have the same sets of 
-immoralities. Assuming nodes are indexed $1-9$, the immoralities found in both
-graphs are:
-\begin{itemize}
- \item $3 \leftarrow 1,2$
- \item $3 \leftarrow 1,5$
- \item $9 \leftarrow 4,7$
-\end{itemize}
 
-The code that was used for calculating these is:
-\begin{lstlisting}
- function [] = prob313(a,b)
-load('ABmatrices.mat');
-findImmoralities(a,b);
-
-findImmoralities(b,a);
-end
-
-function [] = findImmoralities(a,b)
-
-
-undirA = a;
-undirB = b;
-
-[width, height] = size(a);
-
-% build undirected graph
-for i=1:width
-    for j=1:height
-        if (a(i,j) == 1)
-            undirA(j,i) = 1;
-        end
-        if (b(i,j) == 1)
-            undirB(j,i) = 1;
-        end        
-    end
-end
-
-
-% degrees of nodes are the same
-sum(undirA)
-sum(undirB)
-
-
-% adjacency matrices of undirected graphs are the same
-for i=1:width
-    for j=1:height
-        if (undirA(i,j) ~= undirB(i,j))
-            i
-            j
-        end
-    end
-end
-
-markovEq = 1;
-
-for j=1:height
-    %j
-    parentsA = find(a(:,j)); % parents of node j in graph A
-    parentsB = find(b(:,j));
-    for k=1:length(parentsA)
-        for l=k+1:length(parentsA)
-            if (undirA(parentsA(k), parentsA(l)) == 0)
-                % check if other graph has immorality
-                parentsExist = ismember(parentsA(k), parentsB) && 
-ismember(parentsA(l), parentsB);
-            
-                immorality = [j, parentsA(k), parentsA(l)]
-                
-                if (parentsExist && undirB(parentsA(k), parentsA(l)) == 1)
-                    markovEq = 0;
-                    badImmorality = [k, l];
-                end    
-            end
-        end
-    end
-end
-
-markovEq
-end
-\end{lstlisting}
-
-\hilight{re-factor the code so that immoralities are computed for each node 
-individually}
 
 \section*{Problem 3.14}
 
@@ -458,55 +434,6 @@ width=0.2pt},post/.style={->,shorten >=1pt,>=stealth',thick}]
     \label{fig:all_trade_cca_black}     
 \end{figure}
 \end{enumerate}
-
-
-\begin{lstlisting}
- # prob 3.15
-
-low, high, normal = 1,2,3
-E,O,I,R,B = 1,2,3,4,5
-
-pE = PotArray(E, [2//10 8//10])
-pOgE = PotArray([O E], [9//10 5//100; 1//10 95//100])
-
-
-tabIgOE=zeros(2,2,2)
-tabIgOE[low, low, low]=9//10
-tabIgOE[low, low, high]=1//10
-tabIgOE[low, high, low]=1//10
-tabIgOE[low, high, high]=1//100
-
-tabIgOE[high, low, low]=1//10
-tabIgOE[high, low, high]=9//10
-tabIgOE[high, high, low]=9//10
-tabIgOE[high, high, high]=99//100
-
-pIgOE = PotArray([I O E], tabIgOE)
-
-
-tabRgIE=zeros(2,2,2)
-tabRgIE[:, low, low]=[9//10; 1//10]
-tabRgIE[:, low, high]=[1//10; 9//10]
-tabRgIE[:, high, low]=[1//10; 9//10]
-tabRgIE[:, high, high]=[1//100; 99//100]
-
-pRgIE = PotArray([R I E], tabRgIE)
-
-
-pBgO = PotArray([B O], [9//10 1//10; 1//10 4//10; 0//10 5//10])
-
-pAll = pBgO * pRgIE * pIgOE * pOgE * pE
-
-pIRB = sum(pAll, [O E])
-
-pRB = sum(pIBR, I)
-
-pIgRB = pIBR / pRB
- 
-\end{lstlisting}
-
-
-
 
 \section*{Problem 3.17}
 
