@@ -439,10 +439,88 @@ probability, weighted by the proportions of each gender in the study.
 
 
 \section*{Problem 3.12}
+Two belief networks are Markov equivalent if they represent the same conditional
+independence statements. Markov equivalence between two graphs can be determined
+by calculating the graphs' \emph{skeletons} and \emph{immoralities}. If they
+have the same skeleton and immoralities, the two graphs are Markov equivalent.
+
+\begin{lstlisting}
+function MarkovEquiv(A, B)
+    # test skeleton
+    skel_A = get_skeleton(A)
+    skel_B = get_skeleton(B)
+
+    # test immoralities
+    imm_A = get_immoralities(A)
+    imm_B = get_immoralities(B)
+
+    if (skel_A==skel_B) && (imm_A==imm_B)
+        return true
+    else
+        return false
+    end
+end
+
+function get_skeleton(M)
+    skel = zeros(size(M))
+
+    for i in 1:size(M)[1]
+        for j in 1:size(M)[2]
+            if M[i,j] == 1
+                # skeleton is undirected version of the DAG
+                skel[i,j] = 1
+                skel[j,i] = 1
+            end
+        end
+    end
+
+    return skel
+end
+
+function get_immoralities(M)
+    imms = Array[]
+    for i in 1:size(M)[1]
+        for j in 1:size(M)[2]
+            for k in 1:size(M)[1]
+                # if two nodes share a child but are not directly connected, they form an immorality
+                if  M[i,j] == 1 && M[k,j] == 1 &&
+                    M[i,k] != 1 && M[k,i] != 1 && 
+                    i != j && i != k && j != k
+                        push!(imms, [i, j, k])
+                end
+            end
+        end
+    end
+
+    # sort immoralities so identical immoralities can be removed, leaving only unique immoralities
+    unique_imms = unique(map(x -> sort(x), imms))
+
+    return unique_imms
+end
+\end{lstlisting}
 
 
 \section*{Problem 3.13}
+The skeletons are equivalently:
 
+\begin{equation}
+\begin{pmatrix}
+ 0.0 & 0.0 & 1.0 & 1.0 & 0.0 & 1.0 & 0.0 & 0.0 & 0.0 \\
+ 0.0 & 0.0 & 1.0 & 0.0 & 1.0 & 0.0 & 0.0 & 0.0 & 0.0 \\
+ 1.0 & 1.0 & 0.0 & 0.0 & 1.0 & 0.0 & 1.0 & 0.0 & 0.0 \\
+ 1.0 & 0.0 & 0.0 & 0.0 & 0.0 & 1.0 & 0.0 & 1.0 & 1.0 \\
+ 0.0 & 1.0 & 1.0 & 0.0 & 0.0 & 0.0 & 1.0 & 0.0 & 0.0 \\
+ 1.0 & 0.0 & 0.0 & 1.0 & 0.0 & 0.0 & 0.0 & 1.0 & 0.0 \\
+ 0.0 & 0.0 & 1.0 & 0.0 & 1.0 & 0.0 & 0.0 & 0.0 & 1.0 \\
+ 0.0 & 0.0 & 0.0 & 1.0 & 0.0 & 1.0 & 0.0 & 0.0 & 0.0 \\
+ 0.0 & 0.0 & 0.0 & 1.0 & 0.0 & 0.0 & 1.0 & 0.0 & 0.0 \\
+\end{pmatrix}
+\end{equation}
+
+The immoralities are equivalently $\left( 1, 2, 3\right)$, $\left( 1, 3, 5 \right)$ and
+$\left( 4, 7, 9 \right)$.
+
+Hence the two graphs are Markov equivalent.
 
 \section*{Problem 3.14}
 
