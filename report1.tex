@@ -384,17 +384,56 @@ width=0.2pt},post/.style={->,shorten >=1pt,>=stealth',thick}]
     \label{fig:all_trade_cca_black}     
 \end{figure}
 
-\subsection*{2. Computation of $p(recover \; | \; drug)$}
+\subsection*{2. Computation of $p(R=tr \; | \; D=tr)$}
 
-Applying Bayes rule we get $p(recover \; | \; drug) = \frac{p(recover, 
-\;drug)}{p(drug)}$. This suggests that from a database of patient entries we 
-take the number of patients that both recovered and received the drug and 
-divide 
-it by the number of patients that received the drug. 
+By considering the generative model and marginalising we get 
+\begin{equation}
+p(R=tr \; | \; D=tr) = \sum\limits_{A,G} p(R=tr \;
+| A, \; G,\; D=tr) p(A) p(G) p(D=tr \; | \; G, \; A)
+\end{equation}
 
-\subsection*{3. Computation of $p(recover \; | \; do(drug),\; yound)$}
+This suggests that from a database of patient entries we 
+take the number of patients who received the drug \emph{and} recovered, and
+then divide it by the total number of patients who received the drug. 
 
-\hilight{David, could you please write the answer for this one?}
+\subsection*{3. Computation of $p(recover \; | \; do(drug),\; young)$}
+
+The do-calculus allows us to deal with interventional studies, in which we
+have specifically \emph{set} a causal condition in the experiment. The causal
+variable (here $D$) is set to its interventional value, and then severed from
+its parent variables. This yields the following new DAG:
+
+
+\begin{figure}[H]
+  \centering
+    \begin{tikzpicture}[scale=0.8,help lines/.style={color=lightgray,line 
+width=0.2pt},post/.style={->,shorten >=1pt,>=stealth',thick}]
+    
+    \node[inner sep=2] (A) at (0.0,2.0){A};
+    \node[inner sep=2] (G) at (2.0,0.0) {G};
+    \node[inner sep=2] (R) at (-2.0,0.0) {R};
+    \node[inner sep=2] (D) at (0.0,-2.0) {D};
+
+    \draw[->, thick] (A) -- (R);
+    \draw[->, thick] (G) -- (R);
+    \draw[->, thick] (D) -- (R);
+    
+    \end{tikzpicture}
+    \caption{Belief network}
+    \label{fig:do_calc_DAG}    
+\end{figure}
+
+Hence, from the generative model
+\begin{equation}
+p(R=tr \; | \; do(drug),\; A=yo) =
+\sum\limits_{G} p(R=tr \; | \; do(drug), \; A=yo, \; G) p(G)
+\end{equation}
+
+To calculate this, we must take the target group (young people) and then examine their
+recovery results by gender. We then produce a weighted sum of their recovery
+probability, weighted by the proportions of each gender in the study. 
+
+%\hilight{David, could you please write the answer for this one?}
 
 \section*{Problem 3.11}
 
