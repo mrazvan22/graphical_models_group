@@ -117,6 +117,17 @@ inner sep=0]
 
 \maketitle{}
 
+\section*{Contributions}
+
+Initially, we split the problem set into 3 groups (A, B, C) and each of us was 
+meant to solve all problems from two out of the three groups. This way, each 
+problem was solved by two of us and we could check our answers for 
+consistency. 
+
+\begin{table}
+ 
+\end{table}
+
 
 \section*{Problem 2.5}
 Define the set of nodes as $\left\{x_{1}, \ldots , x_{n} \right\}$ where $n$ is the number of nodes in DAG and the edges of DAG is defined as $\left\{ (x_{i},x_{j}) | x_{i} \rightarrow x_{j}, i \neq j \right\}$. \\
@@ -337,15 +348,6 @@ $$p(d) = \sum_{e,b}p(d,e,b) = \sum_{e,b}p(d|e,b)p(e,b) =
    0.5640
 \end{pmatrix}
 $$
- 
-% julia> pE = sum(pAll, [A T B X S D L])
-% PotArray([7],[0.06482800000000001,0.935172])
-% 
-% julia> pX = sum(pAll, [A T E B S D L])
-% PotArray([5],[0.11029004000000005,0.88970996])
-% 
-% julia> pD = sum(pAll, [A T E B X S L])
-% PotArray([6],[0.4359706000000001,0.5640293999999999])
 
 \subsection*{2. Computation for $p(d|s = tr)$}
 
@@ -396,7 +398,7 @@ $$
 
 \subsection*{3. Computation for $p(d|s = fa)$}
 
-We adopt a similar strategy for $p(d| s = fa$ We set $p(s) = \begin{pmatrix}
+We adopt a similar strategy for $p(d| s = fa)$. We set $p(s) = \begin{pmatrix}
                                                               0\\
                                                               1
                                                              \end{pmatrix}$ and 
@@ -752,11 +754,68 @@ $\left( 4, 7, 9 \right)$.
 Hence the two graphs are Markov equivalent.
 
 \section*{Problem 3.14}
-By considering conditional probabilities and evidence at the parent nodes, and 
-then calculating the marginals over these, the \emph{a posteriori} probability 
-vector can be computed.
 
-\hilight{Raz probably wants to expand on this.}
+The ability to send a message from one computer to another clearly depends 
+on the connectivity of the network. We can model the bayesian network as 
+follows:
+
+$$ p(C_{12}(2), C_{23}(2), C_{12}, C_{13}, C_{23}, C_{32}, C_{31}, C_{21}) = $$
+$$ p(C_{12}(2) | C_{12}, C_{13}, C_{23} )p(C_{23}(2) | C_{23}, C_{21}, 
+C_{13} )p(C_{12})p(C_{13})p(C_{23})p(C_{32})p(C_{31})p(C_{21})$$
+
+which is represented by the following graph:
+
+\subsection*{1.}
+\begin{figure}[H]
+  \centering
+    \begin{tikzpicture}[scale=1.2,help lines/.style={color=lightgray,line 
+width=0.2pt},post/.style={->,shorten >=1pt,>=stealth',thick}]
+    
+    \node[inner sep=2] (C122) at (-2.0,0.0){$C_{12}(2)$};
+    \node[inner sep=2] (C232) at (1.0,0.0) {$C_{23}(2)$};
+    \node[inner sep=2] (C12) at (-3.0,2.0) {$C_{12}$};
+    \node[inner sep=2] (C13) at (-2.0,2.0) {$C_{13}$};
+    \node[inner sep=2] (C23) at (-1.0,2.0) {$C_{23}$};
+    \node[inner sep=2] (C32) at (0.0,2.0) {$C_{32}$};
+    \node[inner sep=2] (C31) at (1.0,2.0) {$C_{31}$};
+    \node[inner sep=2] (C21) at (2.0,2.0) {$C_{21}$};
+
+    
+    \draw[->, thick] (C12) -- (C122);
+    \draw[->, thick] (C13) -- (C122);
+    \draw[->, thick] (C32) -- (C122);
+    \draw[->, thick] (C23) -- (C232);
+    \draw[->, thick] (C21) -- (C232);
+    \draw[->, thick] (C13) -- (C232);
+    
+    \end{tikzpicture}
+    \caption{Belief network}
+    \label{fig:all_trade_cca_black}     
+\end{figure}
+
+
+
+By considering conditional probabilities of network structure and prior 
+information at the parent nodes, the \emph{a 
+posteriori} probability vector for the network connectivity can be computed. For 
+example, when node $C_12(2)$ is instantiated to $1$ then we compute
+
+$$ p(C_{12}, C_{13}, C_{32} | C_{12}(2) = 1) = \frac{p(C_{12}(2) = 1 | 
+C_{12}, C_{13}, C_{32})}{p(C_{12}(2) = 1)} = p(C_{12}(2) = 1 | 
+C_{12}, C_{13}, C_{32})$$
+
+We then update $$p(C_{12}, C_{13}, C_{32}) = 
+p(C_{12}, C_{13}, C_{32} | C_{12}(2) = 1)$$
+
+From the joint distribution we then calculate the new posterior distributions 
+over individual variables by marginalising:
+
+$$p(C_{12}) = \sum_{C_{13},C_{32}}p(C_{12}, C_{13}, C_{32})$$
+
+This process is repeated for the other parents $C_{13}$ and $C_{32}$.
+
+The code snippet given below was used to calculate the posterior 
+distribution over the data set.
 
 \begin{equation}
 \begin{split}
@@ -765,7 +824,7 @@ p(C_{12} = 1 \; | \; C) \; , \; p(C_{13} = 1 \; | \; C)  \; , \; p(C_{23} = 1 \;
 p(C_{21} = 1 \; | \; C) \; , \; p(C_{31} = 1 \; | \; C) 
 \end{bmatrix} \\ = 
 \begin{bmatrix}
-0.9174 \; , \; 0.1597 \; , \; 0 \; , \; 0.1743 \; , \; 0.1 \; , \; 0.0850
+0.9174 \; , \; 0.1597 \; , \; 0 \; , \; 0.1743 \; , \; 0.0850 \; , \; 0.1
 \end{bmatrix}
 \end{split}
 \end{equation}
@@ -832,8 +891,8 @@ pC12
 pC13
 pC23
 pC32
-pC31
 pC21
+pC31
 
         
 end
@@ -1588,6 +1647,7 @@ $$\left[\; 3.5103, 1.3489, 1.0755, 2.3107, 1.4150, 4.5783, 1.6438, 4.5783,
 The MATLAB code that was used to calculate them is:
 % TODO: make the MATLAB code calculate the joint distribution and 
 %then marginalise
+\hilight{change the code to use the joint dist}
 
 \begin{lstlisting}
  function [] = prob322()
@@ -1654,7 +1714,7 @@ end
 \end{lstlisting}
 
 
-\section*{Extra Problem A}
+\section*{Additional Problem A}
 
 The image cleaning algorithm given here relies upon striking a balance between
 the first term, which tries to encourage similarity of pixel values in a small
@@ -1663,18 +1723,15 @@ neighbourhood; and the second term, which tries to encourage similarity
 
 Numerical solution, to optimise $x$, is implemented by random perturbation of
 $x$ at each step. These perturbations are only accepted if they
-increase/decrease \hilight{Raz: choose increase/decrease as appropriate, and
-put in details of the converged equilibrium, code listings and the image.} the objective functions, however, which for this problem
+increase the objective functions, however, which for this problem
 eventually leads to a solution.
 
 The algorithm is actually meant to maximise the objective function given in the 
 assignment specification. Our implementation randomly selects a pixel to get 
 updated, calculates the objective function of the original image and the new 
 image (having the pixel swapped) and decides to update the pixel value if the 
-value of the objection function is higher. After running for 1,320,000 
+value of the objection function is higher. After running for 1,870,000 
 iterations, our algorithm gives the following image: 
-
-
 
 \begin{figure}[H]
   \centering
@@ -1692,6 +1749,16 @@ iterations, our algorithm gives the following image:
 %   \caption{Pictures of animals}\label{fig:animals}
 \end{figure}
 
+The original image in shown on the left hand side and the final image is on the 
+right hand side. In the final image, most of the granular noise has been 
+filtered out. However, some noise still remains in  
+the form of small clusters of black pixels. These did not dissapear because of 
+the neighbouring term of the objective function. The objective function that we 
+minimised was:
+
+$$ \sum_{i,j}w(i,j)[x(i)==x(j)] + \sum_i b(i)x(i)$$
+
+After 1,870,000 iterations, the objective function we obtained was 3362388. 
 The MATLAB code that was used to run this program is given below:
 
 \begin{lstlisting}
@@ -1773,8 +1840,88 @@ val = val + 2 * sum(sum(original_noisy .* image));
 end
 \end{lstlisting}
 
+\section*{Additional Problem B}
 
-\section*{Extra Problem B}
+\subsection*{Part 1}
+
+We can model the problem as a dependency network, where there is an arrow from 
+node $X$ to $Y$ if $X$ says he/she was present in the room with $Y$. This gives 
+the following graph:
+
+\begin{figure}[H]
+  \centering
+    \begin{tikzpicture}[scale=0.8,help lines/.style={color=lightgray,line 
+width=0.2pt},post/.style={->,shorten >=1pt,>=stealth',thick}]
+    
+    \node[inner sep=2] (A) at (-2.0,2.0){A};
+    \node[inner sep=2] (B) at (0.0,2.0) {B};
+    \node[inner sep=2] (C) at (0.5,-1.5) {C};
+    \node[inner sep=2] (D) at (-3.0,0.0) {D};
+    \node[inner sep=2] (E) at (-2.0,-2.0) {E};
+    \node[inner sep=2] (F) at (2.0,0.0) {F};
+    
+    \draw[->, thick] (A) -- (E);
+    \draw[->, thick] (A) -- (B);
+    \draw[->, thick] (B) -- (A);
+    \draw[->, thick] (B) -- (F);
+    \draw[->, thick] (B) -- (E);
+    \draw[->, thick] (C) -- (F);
+    \draw[->, thick] (C) -- (D);
+    \draw[->, thick] (D) -- (A);
+    \draw[->, thick] (D) -- (F);
+    \draw[->, thick] (E) -- (C);
+    \draw[->, thick] (F) -- (C);
+    \draw[->, thick] (F) -- (E);
+    
+    \end{tikzpicture}
+    \caption{Belief network}
+    \label{fig:do_calc_DAG}    
+\end{figure}
+
+We can now project the graph to an undirected graph $U$. The solution we 
+have is based on the following observation concerning the undirected graph $U$: 
+\textit{There cannot exist a cycle of nodes $X \rightarrow Y \rightarrow Z 
+\rightarrow T$ for which none of the diagnoal pairs $(X,Z)$ and $(Y,T)$ are 
+connected}. 
+
+\subsection*{Proof by contradiction}
+Let us denote $X.in$ and $X.out$ the timestamps when $X$ came in and 
+respectively went out of the room. 
+
+Let us assume that there exists a cycle $X \rightarrow Y \rightarrow Z 
+\rightarrow T$ for which none of the diagnoal pairs $(X,Z)$ and $Y,T$ is 
+connected by an arrow. Without loss of generality, we also assume that $X$ came 
+into the room before $Z$. We then have the following
+
+$$ X.in < X.out < Z.in < Z.out$$
+
+Since $T$ and $Y$ were in the room with both $X$ and $Z$ we  have the following
+
+$$T.in < X.out < Z.in < T.out$$
+$$Y.in < X.out < Z.in < Y.out$$
+
+From the above equations it results that there exists a timestamp $t$, $X.out < 
+t < Z.in$ when both $T$ and $Y$ were in the room. This renders our previous 
+assumption false. Therefore, our initial statement is true.
+
+\subsection*{Part 2}
+
+If we find such a cycle in our graph, it means that:
+\begin{itemize}
+ \item an edge that is part of the cycle cannot exist. It means the source node 
+is lying. 
+ \item one of the diagonal pairs needs to be connected. However, this can never 
+be the case in our example because we know that \textit{if any two people are 
+present in the room at the same time, then at least one of them will report the 
+fact that he was present in the room with the other person}.
+\end{itemize}
+
+Therefore, it means that if we find such a cycle in our graph, then one of the 
+nodes there is lying. If we look in our network we actually find there are three
+such 4-length cycles: $ABFD$, $DAEC$ and $DAEF$. The only thing these cycles 
+have in common is the $D \rightarrow A$ link. Removing it would get rid 
+of all these inconsistencies. Since $D$ is the source of that connection, we 
+conclude that D was lying. 
 
 
 \end{document}
