@@ -1,7 +1,8 @@
-function [] = raz_probs()
+function [maxCliques] = raz_probs()
 
 %prob313()
-prob314()
+%prob314()
+prob27();
 %prob322()
 %prob26()
 %extra1()
@@ -64,7 +65,7 @@ end
 
 %% prob 2.7
 
-function [] = prob27()
+function [maxCliques] = prob27()
 C = load('cliques.mat');
 
 C = C.cl;
@@ -86,17 +87,15 @@ for c1=1:len
     end
 end
 
-count = count - 1;
-
-celldisp(maxCliques(1:count))
+%celldisp(maxCliques(1:count));
 
 decCliques = zeros(count,1);
 for i=1:count-1
     decCliques(i) = cliqueToDec(maxCliques{i});
 end
     
-decCliques
-
+sort(decCliques)
+%size(maxCliques);
 end
 
 %% prob 3.13

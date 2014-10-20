@@ -204,6 +204,65 @@ h = PyPlot.plt.hist(output, 0:1:20)
 \end{lstlisting}
 
 \section*{Problem 2.7}
+The algorithm shown here iterates over all cliques listed, adding them to the
+cell array of maximal cliques only if they are unique and are not contained
+within another clique. Cliques are then converted from a binary representation
+as discussed in the question.
+
+This yields the following list of unique maximal cliques: 119, 447, 463, 487,
+703, 751, 755, 765, 831, 863, 886, 893, 954, 983, 1006.
+
+\begin{lstlisting}
+function [maxCliques] = prob27()
+C = load('cliques.mat');
+
+C = C.cl;
+len = length(C);
+
+maxCliques = cell(100,1);
+count = 1
+for c1=1:len
+    isContained = 0;
+    for c2=1:len
+        if(c1 ~= c2 && all(ismember(C{c1}, C{c2})))
+            isContained = isContained + 1;
+            break
+        end
+    end
+    if(isContained == 0)
+       maxCliques{count} = C{c1};
+       count = count + 1;
+    end
+end
+
+%celldisp(maxCliques(1:count));
+
+decCliques = zeros(count,1);
+for i=1:count-1
+    decCliques(i) = cliqueToDec(maxCliques{i});
+end
+    
+sort(decCliques)
+%size(maxCliques);
+end
+\end{lstlisting}
+
+\begin{lstlisting}
+
+function [dec] = cliqueToDec(clique)
+
+%binarray = zeros(10,1);
+dec = 0;
+for i=1:10
+    if (ismember(i, clique))
+        %binarray(i) = 1
+        dec = dec + 2^(10-i);
+    end
+end
+
+end
+
+\end{lstlisting}
 
 
 \section*{Problem 2.9}
