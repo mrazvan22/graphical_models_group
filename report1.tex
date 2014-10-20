@@ -4,6 +4,7 @@
 \usepackage{amsmath,amssymb,calc,ifthen}
 
 \usepackage{float}
+\usepackage{cancel}
 
 \usepackage[table,usenames,dvipsnames]{xcolor} % for coloured cells in tables
 
@@ -1056,6 +1057,174 @@ pWHgI - pWgI*pHgI
 
 \section*{Problem 3.21}
 
+\begin{figure}[H]
+  \centering
+    \begin{tikzpicture}[scale=0.8,help lines/.style={color=lightgray,line 
+width=0.2pt},post/.style={->,shorten >=1pt,>=stealth',thick}]
+    
+    \node[inner sep=2] (sa) at (0.0,2.0) {$s_A$};
+    \node[inner sep=2] (sb) at (0.0,4.0) {$s_B$};
+    \node[inner sep=2] (sc) at (0.0,6.0) {$s_C$};
+    \node[inner sep=2] (sd) at (0.0,8.0) {$s_D$};
+
+    \node[inner sep=2] (AB) at (2.0,4.0) {AB};
+    \node[inner sep=2] (BC) at (2.0,5.0) {BC};
+    \node[inner sep=2] (CD) at (2.0,6.0) {CD};
+
+    \node[inner sep=2] (AC) at (4.0,3.0) {AC};
+    \node[inner sep=2] (BD) at (4.0,7.0) {BD};
+
+    \node[inner sep=2] (AD) at (6.0,5.0) {AD};
+
+    \draw[->, thick] (sa) -- (AB);
+    \draw[->, thick] (sa) -- (AC);
+    \draw[->, thick] (sa) -- (AD);
+
+    \draw[->, thick] (sb) -- (BC);
+    \draw[->, thick] (sb) -- (BD);
+    \draw[->, thick] (sb) -- (AB);
+
+    \draw[->, thick] (sc) -- (AC);
+    \draw[->, thick] (sc) -- (BC);
+    \draw[->, thick] (sc) -- (CD);
+
+    \draw[->, thick] (sd) -- (AD);
+    \draw[->, thick] (sd) -- (CD);
+    \draw[->, thick] (sd) -- (BD);
+    
+    \end{tikzpicture}
+    \caption{Belief network}
+    \label{fig:BinGame_DAG}    
+\end{figure}
+
+The skill levels of the players \emph{a posteriori} are not independent, because
+the games' results are colliders between the skill levels. Consequently, after
+conditioning on the outcomes, they are dependent. This makes intuitive sense: if
+one has observed that A often beats B, one's beliefs about A's skill are now related to
+one's beliefs about B's skill.
+
+The probability that D will beat A is obtained by inference, using Bayes' rule: $p(\mathbf{s} \; | \;
+results) = \frac{p(results \; | \; \mathbf{s}) p(\mathbf{s})}{p(results)}$, where
+$p(result = X \; defeats \; Y \; | \; \mathbf{s}) = \frac{1}{1 + \exp{s_y - s_x}}$. Using the
+given results, we infer a posterior distribution for $\mathbf{s}$. In turn, we use this posterior
+distribution to calculate a probability for $p(result = D \; defeats \; A \; | \;
+\mathbf{s}) p(\mathbf{s})$. This probability is calculated to be $0.0143$.
+
+Using the same inferred distribution for $p(\mathbf{s} \; | \; results)$, we
+evaluate the expectation of each element of $\mathbf{s}$, according to
+$\langle s_i \rangle = \sum_{s_i} s_i p(s_i \; | \; s_{\cancel{i}})$.
+These expectations are found to be as follows:
+
+\begin{equation}
+s_A  = 8.3 \; s_B = 5.5 \; s_C = 6.7 \; s_D = 2.2
+\end{equation}
+
+The code used to estimate these probabilities is given in the listings below.
+
+\begin{lstlisting}
+clear all;
+
+p_s = 1/10 * ones(10,10,10,10);
+
+
+results = [ 1 -1  0  0; ...
+            1 -1  0  0; ...
+            0  1 -1  0; ...
+            0  1 -1  0; ...
+            1  0 -1  0; ...
+            1  0 -1  0; ...
+           -1  0  1  0; ...
+            0  0  1 -1; ...
+            0  0  1 -1 ];
+        
+for i=1:length(results)
+    [p_s, ~] = update_s(results(i,:), p_s);
+end
+
+new_results = [-1 0 0 1];
+[~, p_result_on_s] = update_s(new_results, p_s);
+
+p_DbA = 0;
+
+for i=1:10
+    for j=1:10
+        p_DbA = p_DbA + p_result_on_s(i,j) .* sum(sum(p_s(j,:,:,i)));
+    end
+end
+
+
+A = squeeze(sum(sum(sum(p_s, 3), 2), 4));
+B = squeeze(sum(sum(sum(p_s, 3), 1), 4))';
+C = squeeze(sum(sum(sum(p_s, 2), 1), 4));
+D = squeeze(sum(sum(sum(p_s, 2), 1), 3));
+
+vec = 1:10;
+
+means = [vec*A; vec*B; vec*C; vec*D]
+\end{lstlisting}
+
+
+\begin{lstlisting}
+function [p_s_on_result, p_result_on_s] = update_s(result, s_prior_matrix)
+    winner = find(result==1);
+    loser = find(result==-1);
+    possible_s = 1:1:10;
+
+    for i_win=1:10
+        for j_lose=1:10
+            p_result_on_s(i_win,j_lose) = 1/(1+exp(possible_s(j_lose)-possible_s(i_win)));
+        end
+    end
+    
+    p_s_w_by_l = zeros(10,10,10,10);
+    
+    for i=1:10
+        for j=1:10
+            % TODO: reimplement this using metaprogramming, e.g. in Julia
+            if winner==1 && loser==2
+                p_s_w_by_l(i,j,:,:) = p_result_on_s .* squeeze(s_prior_matrix(i,j,:,:));
+
+            elseif winner==1 && loser==3
+                p_s_w_by_l(i,:,j,:) = p_result_on_s .* squeeze(s_prior_matrix(i,:,j,:));
+                
+            elseif winner==1 && loser==4
+                p_s_w_by_l(i,:,:,j) = p_result_on_s .* squeeze(s_prior_matrix(i,:,:,j));
+                
+            elseif winner==2 && loser==1
+                p_s_w_by_l(j,i,:,:) = p_result_on_s .* squeeze(s_prior_matrix(j,i,:,:));
+                
+            elseif winner==2 && loser==3
+                p_s_w_by_l(:,i,j,:) = p_result_on_s .* squeeze(s_prior_matrix(:,i,j,:));
+                
+            elseif winner==2 && loser==4
+                p_s_w_by_l(:,i,:,j) = p_result_on_s .* squeeze(s_prior_matrix(:,i,:,j));
+                
+            elseif winner==3 && loser==1
+                p_s_w_by_l(j,:,i,:) = p_result_on_s .* squeeze(s_prior_matrix(j,:,i,:));
+                
+            elseif winner==3 && loser==2
+                p_s_w_by_l(:,j,i,:) = p_result_on_s .* squeeze(s_prior_matrix(:,j,i,:));
+                
+            elseif winner==3 && loser==4
+                p_s_w_by_l(:,:,i,j) = p_result_on_s .* squeeze(s_prior_matrix(:,:,i,j));
+                
+            elseif winner==4 && loser==1
+                p_s_w_by_l(j,:,:,i) = p_result_on_s .* squeeze(s_prior_matrix(j,:,:,i));
+                
+            elseif winner==4 && loser==2
+                p_s_w_by_l(:,j,:,i) = p_result_on_s .* squeeze(s_prior_matrix(:,j,:,i));
+                
+            elseif winner==4 && loser==3
+                p_s_w_by_l(:,:,j,i) = p_result_on_s .* squeeze(s_prior_matrix(:,:,j,i));
+                
+            end
+        end
+    end
+    
+    p_s_on_result = p_s_w_by_l / sum(sum(sum(sum(p_s_w_by_l))));
+end
+
+\end{lstlisting}
 
 \section*{Problem 3.22}
 
