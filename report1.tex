@@ -235,6 +235,61 @@ not blocked ($d$ is instantiated).
 \section*{Problem 3.4}
 
 
+\subsection*{1. Computation for $p(d)$}
+
+$$p(t) = \sum_{a}p(t,a) = \sum_{a}p(t|a)p(a) = 
+\begin{pmatrix}
+   0.0104\\
+   0.9896
+\end{pmatrix}
+$$
+
+$$p(l) = \sum_{s}p(l,s) = \sum_{s}p(l|s)p(s) = 
+\begin{pmatrix}
+   0.055\\
+   0.945
+\end{pmatrix}
+$$
+
+$$p(b) = \sum_{s}p(b,s) = \sum_{s}p(b|s)p(s) = 
+\begin{pmatrix}
+   0.45\\
+   0.55
+\end{pmatrix}
+$$
+
+Given that nodes $e$ and $d$ are not instantiated, we get that $t \ci l$ and $e 
+\ci b$, which implies that $p(t,l) = p(t)p(l)$ and $p(e,b)=p(e)p(b)$. We can 
+now calculate:
+
+$$p(e) = \sum_{t,l}p(e,t,l) = \sum_{t,l}p(e|t,l)p(t,l) = 
+\sum_{t,l}p(e|t,l)p(t)p(l) = 
+\begin{pmatrix}
+   0.0648\\
+   0.9351
+\end{pmatrix}
+$$
+
+$$p(d) = \sum_{e,b}p(d,e,b) = \sum_{e,b}p(d|e,b)p(e,b) = 
+\sum_{e,b}p(d|e,b)p(e)p(b) = 
+\begin{pmatrix}
+   0.4359\\
+   0.5640
+\end{pmatrix}
+$$
+ 
+% julia> pE = sum(pAll, [A T B X S D L])
+% PotArray([7],[0.06482800000000001,0.935172])
+% 
+% julia> pX = sum(pAll, [A T E B S D L])
+% PotArray([5],[0.11029004000000005,0.88970996])
+% 
+% julia> pD = sum(pAll, [A T E B X S L])
+% PotArray([6],[0.4359706000000001,0.5640293999999999])
+
+\subsection*{2. Computation for $p(d|s)$}
+
+
 \section*{Problem 3.8}
 \begin{enumerate}
 	\item 
@@ -398,6 +453,33 @@ it by the number of patients that received the drug.
 
 \section*{Problem 3.11}
 
+In order to include this effect in our model, we change the formula for the 
+joint probability distribution to be:
+
+$$p(B, E, A, R) = p(A|B, E)p(R|E)p(B|E)p(E)$$
+
+This means that on the graphical model we add an arrow from $E$ to $B$. The 
+belief network diagram will look like this:
+
+\begin{figure}[H]
+  \centering
+    \begin{tikzpicture}[scale=0.8,help lines/.style={color=lightgray,line 
+width=0.2pt},post/.style={->,shorten >=1pt,>=stealth',thick}]
+    
+    \node[inner sep=2] (E) at (0.0,2.0){E};
+    \node[inner sep=2] (B) at (2.0,2.0) {B};
+    \node[inner sep=2] (R) at (-1.0,0.0) {R};
+    \node[inner sep=2] (A) at (1.0,0.0) {A};
+
+    \draw[->, thick] (E) -- (B);
+    \draw[->, thick] (E) -- (A);
+    \draw[->, thick] (B) -- (A);
+    \draw[->, thick] (E) -- (R);
+    
+    \end{tikzpicture}
+    \caption{Belief network}
+    \label{fig:all_trade_cca_black}     
+\end{figure}
 
 \section*{Problem 3.12}
 
