@@ -1397,7 +1397,23 @@ end
 
 
 \section*{Extra Problem A}
+The image cleaning algorithm given here relies upon striking a balance between
+the first term, which tries to encourage similarity of pixel values in a small
+neighbourhood; and the second term, which tries to encourage similarity
+(somewhat) to the noisy image. 
 
+Numerical solution, to optimise $x$, is implemented by random perturbation of
+$x$ at each step. These perturbations are only accepted if they
+increase/decrease \hilight{Raz: choose increase/decrease as appropriate, and
+put in details of the converged equilibrium, code listings and the image.} the objective functions, however, which for this problem
+eventually leads to a solution.
+
+\begin{figure}
+%\includegraphics{}
+\end{figure}
+
+\begin{lstlisting}
+\end{lstlisting}
 
 \section*{Extra Problem B}
 
