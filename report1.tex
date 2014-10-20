@@ -4,7 +4,7 @@
 \usepackage{amsmath,amssymb,calc,ifthen}
 
 \usepackage{float}
-\usepackage{cancel}
+%\usepackage{cancel}
 
 \usepackage[table,usenames,dvipsnames]{xcolor} % for coloured cells in tables
 
@@ -1194,7 +1194,7 @@ distribution to calculate a probability for $p(result = D \; defeats \; A \; | \
 
 Using the same inferred distribution for $p(\mathbf{s} \; | \; results)$, we
 evaluate the expectation of each element of $\mathbf{s}$, according to
-$\langle s_i \rangle = \sum_{s_i} s_i p(s_i \; | \; s_{\cancel{i}})$.
+$\langle s_i \rangle = \sum_{s_i} s_i p(s_i \; | \; s_{j \neq i})$.
 These expectations are found to be as follows:
 
 \begin{equation}
