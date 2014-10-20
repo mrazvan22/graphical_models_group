@@ -1641,26 +1641,24 @@ At the end, the expected interest is calculated using the formula
 $$E[s_A] = \sum_{i=1}^{5}i\ * p(s_A)$$
 
 The final interest levels we get are:
-$$\left[\; 3.5103, 1.3489, 1.0755, 2.3107, 1.4150, 4.5783, 1.6438, 4.5783, 
-4.4519, 3.5103\; \right]$$
+$$\left[\; 3.3472 \; 1.4728 \; 1.1570 \;  2.1519 \;  1.3391 \; 4.4564 \; 1.4185 
+\; 4.4820 \; 4.4519 \;3.5103 \right]$$
 
 The MATLAB code that was used to calculate them is:
-% TODO: make the MATLAB code calculate the joint distribution and 
-%then marginalise
-\hilight{change the code to use the joint dist}
 
 \begin{lstlisting}
- function [] = prob322()
+function [] = prob322var2()
 
 data = [1 2 3; 2 5 3; 4 7 10; 6 3 4; 6 8 5; 9 3 7; 10 2 4; 7 1 2; 8 7 2; 8 3 6; 
 8 6 4; 4 3 9; 5 4 1; 9 5 1; 6 7 8; 4 9 7; 10 8 6; 5 4 3; 6 3 2; 1 4 2];
 
 nrDataPoints = 10;
 nrLevels = 5;
-interest_adv = ones(nrDataPoints, nrLevels) .* 0.2;
+pInterest = ones(nrDataPoints, nrLevels) .* 0.2;
 
 pDgABC = zeros(nrLevels, nrLevels, nrLevels);
 
+% compute the conditional probability table p(d | a b c )
 for sA = 1:nrLevels
     for sB = 1:nrLevels
         for sC = 1:nrLevels
@@ -1669,22 +1667,6 @@ for sA = 1:nrLevels
     end
 end
 
-% calculate the marginal p(sA)
-pSa = zeros(1, nrLevels);
-for sA = 1:nrLevels
-    pSa(sA) = sum(sum(pDgABC(sA, :, :)));
-end
-
-% calculate the marginal p(Sb). Note that p(Sc) = p(Sb)
-pSb = zeros(1, nrLevels);
-for sB = 1:nrLevels
-    pSb(sB) = sum(sum(pDgABC(:, sB, :)));
-end
-
-% normalise the values (not strictly needed though)
-pSa = pSa ./ sum(pSa);
-pSb = pSb ./ sum(pSb);
-
 for i=1:nrDataPoints
     dataPoint = data(i,:);
     
@@ -1692,21 +1674,37 @@ for i=1:nrDataPoints
     advB = dataPoint(2);
     advC = dataPoint(3);
     
-    interest_adv(advA,:) = interest_adv(advA,:) .* pSa;
-    interest_adv(advB,:) = interest_adv(advB,:) .* pSb;
-    interest_adv(advC,:) = interest_adv(advC,:) .* pSb; % using pSb since pSc = 
-pSb
+    % calculate the joint distribution p(a,b,c) fom p(a) p(b) p(c)
+    pABC = zeros(nrLevels,nrLevels, nrLevels);
+    for i=1:nrLevels
+        for j=1:nrLevels
+            for k=1:nrLevels
+                pABC(i,j,k) = pInterest(advA,i) * pInterest(advB,j) * 
+pInterest(advC,k);
+            end
+        end
+    end
     
-    interest_adv(advA,:) = interest_adv(advA,:) ./ sum(interest_adv(advA,:));
-    interest_adv(advB,:) = interest_adv(advB,:) ./ sum(interest_adv(advB,:));
-    interest_adv(advC,:) = interest_adv(advC,:) ./ sum(interest_adv(advC,:));
-    % calc prob(sA)
+    % update the joint distribution and maginalise over all variables in
+    % turn
+    pABC = pABC .* pDgABC;
+    pInterest(advA,:) = sum(sum(pABC(:,:,:),3),2);
+    pInterest(advB,:) = sum(sum(pABC(:,:,:),1),3);
+    pInterest(advC,:) = sum(sum(pABC(:,:,:),1),2);
+    
+    % normalise the evidence to get a probability distribution
+    pInterest(advA,:) = pInterest(advA,:) ./ sum(pInterest(advA,:));
+    pInterest(advB,:) = pInterest(advB,:) ./ sum(pInterest(advB,:));
+    pInterest(advC,:) = pInterest(advC,:) ./ sum(pInterest(advC,:));
 
 end
 
+pInterest
+
+% compute the expected values
 expected_values = zeros(nrDataPoints,1);
 for level=1:nrLevels
-    expected_values = expected_values + interest_adv(:,level) * level;
+    expected_values = expected_values + pInterest(:,level) * level;
 end
 
 expected_values
@@ -1758,8 +1756,9 @@ minimised was:
 
 $$ \sum_{i,j}w(i,j)[x(i)==x(j)] + \sum_i b(i)x(i)$$
 
-After 1,870,000 iterations, the objective function we obtained was 3362388. 
-The MATLAB code that was used to run this program is given below:
+After 1,870,000 iterations, the objective function we obtained was 
+\textbf{3362388}. The MATLAB code that was used to run this program is given 
+below:
 
 \begin{lstlisting}
 function xclean = extra1()
