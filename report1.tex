@@ -296,7 +296,7 @@ end
 
 
 \section*{Problem 2.9}
-Let $N=3n$ where $n$ is an integer, let us prove the hypothesis by induction on $n$. Consider $n=1$ i.e. when $N=3$. This is trivial as there is three nodes with no edges therefore there are three cliques that are form. Let us now assume that the hypothesis is true for for $N$ therefore there exist a graph $G$ such that it displays all the properties stated in the question. To prove the hypothesis let us consider the graph $G$ and introduce a new partition of three nodes. For each node in the partition let us connect it to every node in $G$. Therefore the maximal cliques will contain $N-1$ edges furthermore there will only exist $3^{N/3}$ maximal cliques otherwise to form a new maximal cliques a node in $G$ would have to connect another node in the same partition. Thus for each of the three newly introduced node there would be $3^{N/3}$ maximal cliques thus the total maximal cliques is $3(3^{N/3}) = 3^{(N+1)/3}$. Thus the hypothesis is proved.
+Let $N=3n$ where $n$ is an integer. We shall prove the hypothesis by induction on $n$. Consider $n=1$ i.e. when $N=3$. This is trivial as there are three nodes with no edges, and therefore three cliques are formed. Let us now assume that the hypothesis is true for for $N$, meaning there exists a graph $G$ that displays all the properties stated in the question. To prove the hypothesis let us consider the graph $G$ and introduce a new partition of three nodes. For each node in the partition let us connect it to every node in $G$. The maximal cliques will hence contain $N-1$ edges, and furthermore there will only exist $3^{N/3}$ maximal cliques -- otherwise, to form a new maximal clique, a node in $G$ would have to connect another node in the same partition. Thus, for each of the three newly introduced nodes, there would be $3^{N/3}$ maximal cliques. The total number of maximal cliques, then, is $3(3^{N/3}) = 3^{(N+1)/3}$. Thus the hypothesis is proved: it is true for $n=3$ and given it is true for $n$, it will be true for $n+1$
 
 \section*{Problem 3.3}
 
@@ -1738,17 +1738,17 @@ the first term, which tries to encourage similarity of pixel values in a small
 neighbourhood; and the second term, which tries to encourage similarity
 (somewhat) to the noisy image. 
 
-Numerical solution, to optimise $x$, is implemented by random perturbation of
+Numerical solution to optimise $x$ is implemented as random perturbation of
 $x$ at each step. These perturbations are only accepted if they
-increase the objective functions, however, which for this problem
-eventually leads to a solution.
+increase the objective function, however, which in this problem
+eventually leads to a converged solution.
 
 The algorithm is actually meant to maximise the objective function given in the 
 assignment specification. Our implementation randomly selects a pixel to get 
 updated, calculates the objective function of the original image and the new 
 image (having the pixel swapped) and decides to update the pixel value if the 
 value of the objection function is higher. After running for 1,870,000 
-iterations, our algorithm gives the following image: 
+iterations (although convergence had more or less been achieved long before this), our algorithm gives the following image: 
 
 %\begin{figure}[H]
 %  \centering
