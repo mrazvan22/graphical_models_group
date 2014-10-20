@@ -288,7 +288,94 @@ $$
 % julia> pD = sum(pAll, [A T E B X S L])
 % PotArray([6],[0.4359706000000001,0.5640293999999999])
 
-\subsection*{2. Computation for $p(d|s)$}
+\subsection*{2. Computation for $p(d|s = tr)$}
+
+We can calculate $p(d| s = tr$ by re-doing the same calculations as 
+before, but this time setting the prior probability of s to $p(s) = 
+\begin{pmatrix}
+                                                              1\\
+                                                              0
+                                                             \end{pmatrix}$. 
+Moreover, we don't need to recalculate $p(t)$ because its probability remains 
+unchanged.
+
+$$p(l) = \sum_{s}p(l,s) = \sum_{s}p(l|s)p(s) = 
+\begin{pmatrix}
+   0.1\\
+   0.9
+\end{pmatrix}
+$$
+
+$$p(b) = \sum_{s}p(b,s) = \sum_{s}p(b|s)p(s) = 
+\begin{pmatrix}
+   0.6\\
+   0.4
+\end{pmatrix}
+$$
+
+Given that nodes $e$ and $d$ are not instantiated, we get that $t \ci l$ and $e 
+\ci b$, which implies that $p(t,l) = p(t)p(l)$ and $p(e,b)=p(e)p(b)$. We can 
+now calculate:
+
+$$p(e) = \sum_{t,l}p(e,t,l) = \sum_{t,l}p(e|t,l)p(t,l) = 
+\sum_{t,l}p(e|t,l)p(t)p(l) = 
+\begin{pmatrix}
+   0.1093\\
+   0.8906
+\end{pmatrix}
+$$
+
+$$p(d) = \sum_{e,b}p(d,e,b) = \sum_{e,b}p(d|e,b)p(e,b) = 
+\sum_{e,b}p(d|e,b)p(e)p(b) = 
+\begin{pmatrix}
+   0.5528\\
+   0.4471
+\end{pmatrix}
+$$
+
+
+
+\subsection*{3. Computation for $p(d|s = fa)$}
+
+We adopt a similar strategy for $p(d| s = fa$ We set $p(s) = \begin{pmatrix}
+                                                              0\\
+                                                              1
+                                                             \end{pmatrix}$ and 
+we get:
+
+$$p(l) = \sum_{s}p(l,s) = \sum_{s}p(l|s)p(s) = 
+\begin{pmatrix}
+   0.01\\
+   0.99
+\end{pmatrix}
+$$
+
+$$p(b) = \sum_{s}p(b,s) = \sum_{s}p(b|s)p(s) = 
+\begin{pmatrix}
+   0.3\\
+   0.7
+\end{pmatrix}
+$$
+
+Given that nodes $e$ and $d$ are not instantiated, we get that $t \ci l$ and $e 
+\ci b$, which implies that $p(t,l) = p(t)p(l)$ and $p(e,b)=p(e)p(b)$. We can 
+now calculate:
+
+$$p(e) = \sum_{t,l}p(e,t,l) = \sum_{t,l}p(e|t,l)p(t,l) = 
+\sum_{t,l}p(e|t,l)p(t)p(l) = 
+\begin{pmatrix}
+   0.0202\\
+   0.9797
+\end{pmatrix}
+$$
+
+$$p(d) = \sum_{e,b}p(d,e,b) = \sum_{e,b}p(d|e,b)p(e,b) = 
+\sum_{e,b}p(d|e,b)p(e)p(b) = 
+\begin{pmatrix}
+   0.3191\\
+   0.6808
+\end{pmatrix}
+$$
 
 
 \section*{Problem 3.8}
@@ -1310,8 +1397,228 @@ end
 
 \section*{Problem 3.22}
 
+We model this problem with a Bayesian network described as:
+
+$$p(d, s_A, s_B, s_C) = p(d | s_A, s_B, s_C) p(s_A, s_B, s_C)$$ having the 
+following graph: 
+
+\begin{figure}[H]
+  \centering
+    \begin{tikzpicture}[scale=01.4,help lines/.style={color=lightgray,line 
+width=0.2pt},post/.style={->,shorten >=1pt,>=stealth',thick}]
+    
+    \node[inner sep=2] (sa) at (-1.0,0.0) {$s_A$};
+    \node[inner sep=2] (sb) at (0.0,0.0) {$s_B$};
+    \node[inner sep=2] (sc) at (1.0,0.0) {$s_C$};
+    \node[inner sep=2] (d) at (0.0,-1.0) {$d$};
+
+    \draw[->, thick] (sa) -- (d);
+    \draw[->, thick] (sb) -- (d);
+    \draw[->, thick] (sc) -- (d);
+    
+    \end{tikzpicture}
+    \caption{Avertisement Bayesian network}
+    \label{fig:daily_fail}    
+\end{figure}
+
+For each data entry $(a_i, a_j, a_k)$, we first calculate the joint probability
+$$p(d = a_i, s_A, s_B, s_C) = p(d = a_i | s_A, s_B, s_C)p(s_A, s_B, s_C)$$. 
+This will then be marginalised to get: 
+$$ p(d = a_i, s_A) = \sum_{BC}p(d = a_i, s_A, s_B, s_C) $$
+$$ p(d = a_i, s_B) = \sum_{BC}p(d = a_i, s_A, s_B, s_C) $$
+$$ p(d = a_i, s_C) = \sum_{BC}p(d = a_i, s_A, s_B, s_C) $$
+
+The probability $p(d = a_i, s_A)$ is then normalised and used for updating the 
+probability $p(s_A)$:
+$$p(s_A) = p(s_A)p(d = a_i, s_A)$$
+The other probabilities $p(s_B)$ and $p(s_C)$ are updated in a similar fashion. 
+
+At the end, the expected interest is calculated using the formula
+
+$$E[s_A] = \sum_{i=1}^{5}i\ * p(s_A)$$
+
+The final interest levels we get are:
+$$\left[\; 3.5103, 1.3489, 1.0755, 2.3107, 1.4150, 4.5783, 1.6438, 4.5783, 
+4.4519, 3.5103\; \right]$$
+
+The MATLAB code that was used to calculate them is:
+% TODO: make the MATLAB code calculate the joint distribution and 
+%then marginalise
+
+\begin{lstlisting}
+ function [] = prob322()
+
+data = [1 2 3; 2 5 3; 4 7 10; 6 3 4; 6 8 5; 9 3 7; 10 2 4; 7 1 2; 8 7 2; 8 3 6; 
+8 6 4; 4 3 9; 5 4 1; 9 5 1; 6 7 8; 4 9 7; 10 8 6; 5 4 3; 6 3 2; 1 4 2];
+
+nrDataPoints = 10;
+nrLevels = 5;
+interest_adv = ones(nrDataPoints, nrLevels) .* 0.2;
+
+pDgABC = zeros(nrLevels, nrLevels, nrLevels);
+
+for sA = 1:nrLevels
+    for sB = 1:nrLevels
+        for sC = 1:nrLevels
+            pDgABC(sA, sB, sC) = exp(sA - max(sB, sC));
+        end
+    end
+end
+
+% calculate the marginal p(sA)
+pSa = zeros(1, nrLevels);
+for sA = 1:nrLevels
+    pSa(sA) = sum(sum(pDgABC(sA, :, :)));
+end
+
+% calculate the marginal p(Sb). Note that p(Sc) = p(Sb)
+pSb = zeros(1, nrLevels);
+for sB = 1:nrLevels
+    pSb(sB) = sum(sum(pDgABC(:, sB, :)));
+end
+
+% normalise the values (not strictly needed though)
+pSa = pSa ./ sum(pSa);
+pSb = pSb ./ sum(pSb);
+
+for i=1:nrDataPoints
+    dataPoint = data(i,:);
+    
+    advA = dataPoint(1);
+    advB = dataPoint(2);
+    advC = dataPoint(3);
+    
+    interest_adv(advA,:) = interest_adv(advA,:) .* pSa;
+    interest_adv(advB,:) = interest_adv(advB,:) .* pSb;
+    interest_adv(advC,:) = interest_adv(advC,:) .* pSb; % using pSb since pSc = 
+pSb
+    
+    interest_adv(advA,:) = interest_adv(advA,:) ./ sum(interest_adv(advA,:));
+    interest_adv(advB,:) = interest_adv(advB,:) ./ sum(interest_adv(advB,:));
+    interest_adv(advC,:) = interest_adv(advC,:) ./ sum(interest_adv(advC,:));
+    % calc prob(sA)
+
+end
+
+expected_values = zeros(nrDataPoints,1);
+for level=1:nrLevels
+    expected_values = expected_values + interest_adv(:,level) * level;
+end
+
+expected_values
+end
+\end{lstlisting}
+
 
 \section*{Extra Problem A}
+
+The algorithm is actually meant to maximise the objective function given in the 
+assignment specification. Our implementation randomly selects a pixel to get 
+updated, calculates the objective function of the original image and the new 
+image (having the pixel swapped) and decides to update the pixel value if the 
+value of the objection function is higher. After running for 1,320,000 
+iterations, our algorithm gives the following image: 
+
+
+
+
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.3\textwidth}
+	  \includegraphics[scale=0.6]{plots/xnoisy}
+	  \caption{Original image}
+	  \label{fig:gull}
+  \end{subfigure}%
+  ~ 
+  \begin{subfigure}[b]{0.3\textwidth}
+	  \includegraphics[scale=0.6]{plots/xclean0132}
+	  \caption{Final image}
+	  \label{fig:tiger}
+  \end{subfigure}
+%   \caption{Pictures of animals}\label{fig:animals}
+\end{figure}
+
+The MATLAB code that was used to run this program is given below:
+
+\begin{lstlisting}
+function xclean = extra1()
+
+load('noisyface.mat')
+
+[h w] = size(xnoisy);
+
+nrPixels = w * h;
+
+xclean = xnoisy;
+
+noChangeTimes = 0;
+iteration = 1;
+module_size = 10000;
+    
+while (noChangeTimes < 5 * nrPixels)
+
+    % get me a random pixel to update
+    nextPixelI = floor(rand * h) + 1;
+    nextPixelJ = floor(rand * w) + 1;
+
+    % clone the image file and flip the pixel
+    flipped_pixel_img = xclean;
+    flipped_pixel_img(nextPixelI, nextPixelJ) = 1 - 
+flipped_pixel_img(nextPixelI, nextPixelJ);
+
+    % calculate the objective functions
+    valUnchanged = objective_func(xclean, xnoisy);
+    valFlipped = objective_func(flipped_pixel_img, xnoisy);
+
+    % compare the values of the objective function and update if necessary
+    if(valFlipped > valUnchanged)
+       % pixel was flipped 
+       xclean = flipped_pixel_img;
+       noChangeTimes = 0;
+    else
+       % pixel not flipped
+       noChangeTimes = noChangeTimes + 1;
+    end
+
+
+    if(mod(iteration,module_size) == 0)
+        iteration
+        noChangeTimes
+        index =  sprintf('%04d', iteration / module_size)
+        imwrite(xclean,strcat('images/xclean', index,  '.png'));
+    end
+    iteration = iteration + 1;
+    
+end
+
+
+end
+
+function val = objective_func(image, original_noisy)
+
+val = 0;
+neigh_w = 10;
+
+% create copies of the original image slided to the right and down
+right_slided = image(:,2:end);
+down_slided = image(2:end,:);
+
+% chop 1 row/column of the original image and create copies
+right_chopped = image(:,1:end-1);
+down_chopped = image(1:end-1,:);
+
+% compate the chopped version with the slided ones
+right_eq = right_slided == right_chopped;
+down_eq = down_slided == down_chopped;
+
+% calculate the value of the objective function
+val =  val + neigh_w  * 2 * (sum(sum(right_eq)) + sum(sum(down_eq)));
+val = val + 2 * sum(sum(original_noisy .* image));
+
+
+end
+\end{lstlisting}
 
 
 \section*{Extra Problem B}
